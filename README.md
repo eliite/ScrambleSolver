@@ -1,4 +1,4 @@
-# ScrambleSolver
+# ScrambleSolver by Jacek Strotz
 A computer program which solves the famous Scramble Squares puzzle.
 
 ## About
