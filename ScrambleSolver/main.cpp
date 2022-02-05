@@ -6,13 +6,13 @@
 
 #define BOARD_SIZE 9
 
-#define EARTH_NORTH 1 // 2 continents
+#define EARTH_NORTH 1 // 2 landmasses
 #define EARTH_SOUTH -1
 
 #define SATURN_UP 2 // the way the front ring points
 #define SATURN_DOWN -2
 
-#define JUPITER_LIGHT 3
+#define JUPITER_LIGHT 3  // top right corner light
 #define JUPITER_DARK -3
 
 #define MARS_TOP 4 // very bright 
@@ -95,7 +95,6 @@ std::string convert_num(int n);
 
 int main() {
 	board.init();
-	/* these numbers can be changed for different versions of Scramble Squares. */
 
 	while (step >= 0)
 		calculate(step);
@@ -108,10 +107,14 @@ int main() {
 }
 
 void log() {
-	unsigned int num = counter[BOARD_SIZE-1];
+	// counter[] is an array with GAME_SIZE-1 length
+	// since each number can only iterate to GAME_SIZE-1
+	// before tripping the previous, this array turns
+	// into a base-(GAME_SIZE-1) number
 
+	unsigned int num = counter[BOARD_SIZE-1];
 	for (int i = BOARD_SIZE - 1; i >= BOARD_SIZE - 9; i--)
-		num += counter[i] * pow(BOARD_SIZE, -i + BOARD_SIZE);
+		num += counter[i] * pow(BOARD_SIZE-1, -i + BOARD_SIZE - 1);
 
 	printf("[MATH] Number of iterations: %s\n", convert_num(num).c_str());
 	printf("[MATH] Number of matches tested: %s\n", convert_num(match_counter).c_str());
@@ -369,9 +372,7 @@ void c_square::reset() {
 	rotation = 0;
 }
 
-c_board::c_board() {
-}
-
+c_board::c_board() {}
 void c_board::init() {
 	this->square[0] = c_square(new int[] { JUPITER_DARK,	EARTH_NORTH,	JUPITER_LIGHT,	MARS_BOTTOM}, 0);
 	this->square[1] = c_square(new int[] { JUPITER_LIGHT,	SATURN_UP,		MARS_BOTTOM,	SATURN_UP }, 1);
@@ -382,14 +383,4 @@ void c_board::init() {
 	this->square[6] = c_square(new int[] { MARS_TOP,		SATURN_UP,		EARTH_SOUTH,	JUPITER_DARK }, 6);
 	this->square[7] = c_square(new int[] { EARTH_NORTH,		JUPITER_LIGHT,	MARS_BOTTOM,	SATURN_DOWN }, 7);
 	this->square[8] = c_square(new int[] { MARS_TOP,		SATURN_DOWN,	EARTH_NORTH,	JUPITER_LIGHT }, 8);
-
-	/*this->square[0] = c_square(new int[] { -2, -4, 1, 2 }, 0);
-	this->square[1] = c_square(new int[] { -3, 1, -2, 4 }, 1);
-	this->square[2] = c_square(new int[] { 3, 4, 2, -3 }, 2);
-	this->square[3] = c_square(new int[] { 3, -4, 2, -1 }, 3);
-	this->square[4] = c_square(new int[] { -3, 1, 4, -1 }, 4);
-	this->square[5] = c_square(new int[] { -3, 1, 2, 4  }, 5);
-	this->square[6] = c_square(new int[] { 3, -2, 4, -1 }, 6);
-	this->square[7] = c_square(new int[] { -3, 4, -2, 1 }, 7);
-	this->square[8] = c_square(new int[] { -3, -1, 2, -4 }, 8);*/
 }
