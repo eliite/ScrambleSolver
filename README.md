@@ -17,8 +17,8 @@ a perspective of the intensity of the puzzle, a relevant property is statistics.
 * Each puzzle has **9** pieces
 * Each piece has **4** rotations
 * There are **9!** permutations of the board, without rotation
-* There are **9^4** separate permutations with rotation
-* **Conclusion: There are 9! * 9^4 (over 95 billion) permutations of this puzzle**
+* There are **4^9** separate permutations with rotation
+* **Conclusion: There are 9! * 4^9 (over 95 billion) permutations of this puzzle**
 
 This means that if a regular person were to discover a new permutation every second, and record old permutations to ensure novelty,
 it would take them over **3000** years to complete the puzzle in the worst case scenario.
