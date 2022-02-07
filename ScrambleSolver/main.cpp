@@ -50,10 +50,9 @@ public:
 // lets keep track of how many times we attempt a match
 static int match_counter = 0;
 // keep track of iterations
-static int counter[BOARD_SIZE] = { 0,0,0,0,0,0,0,0,0 };
 // the only piece that needs rotated is idx 0.
 // match(...) and its overrided brother handle rotations
-static int rotation_counter = 0;
+static int counter[BOARD_SIZE] = { 0,0,0,0,0,0,0,0,0 };
 // keep track of which piece we are calculating
 static int step = 0;
 // one array for input board, one array for output board
