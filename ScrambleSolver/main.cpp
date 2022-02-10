@@ -202,7 +202,7 @@ void calculate(int idx) {
 				break;
 			}
 			else
-				continue;
+				counter[idx]++;
 		}
 	}
 	else if (type == 1) {
@@ -226,7 +226,7 @@ void calculate(int idx) {
 				break;
 			}
 			else
-				continue;
+				counter[idx]++;
 		}
 	}
 	else if (type == 2) {
@@ -250,7 +250,7 @@ void calculate(int idx) {
 				break;
 			}
 			else
-				continue;
+				counter[idx]++;
 		}
 	}
 }
