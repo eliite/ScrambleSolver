@@ -8,7 +8,7 @@ itself in familiar quantities to programmers everywhere. The puzzle seems simple
 of one of four different categories of pictures. For example, the **Scramble Squares Planets Edition** have 4 planets: Earth, Mars, Jupiter,
 and Saturn. However, each planet is split into two halves and each image is randomly selected for a random side of a square. Therefore,
 the idea and objective of the game becomes simple: match each square so that the halves of the connecting image combine to form the 
-entire image. 
+entire image (see below for output examples).
 
 ## Purpose
 
@@ -54,3 +54,16 @@ From this project, I learned a multitude of new things about general programming
 * Sometimes, it is best to take a break and **consume nutrients** in-between sections of the project (a technique I did not make use of)
 * The best solutions come to mind while you are distracted
 * **“You know more than you think you know, just as you know less than you want to know.” - Oscar Wilde**
+
+### Output
+
+![Console](images/Example4.png)
+(Above: The console version of the Scramble Solver program, presenting the solved output of the Scramble Squares Planets edition)
+
+![Visual-Unsolved](images/Example2.png)
+(Above: The graphical version of the Scramble Solver program, presenting the unsolved output of the Scramble Squares Planets edition)
+
+![Visual-Solved](images/Example3.png)
+(Above: The graphical version of the Scramble Solver program, presenting the solved output of the Scramble Squares Planets edition)
+
+NOTE: In the visual program, the central number indicates the initial square index. The number denoted by "r#" indicates the number of clockwise rotations.
