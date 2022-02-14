@@ -50,6 +50,7 @@ public:
 // lets keep track of how many times we attempt a match
 static int match_counter = 0;
 // keep track of iterations
+static int iterations = 0;
 // the only piece that needs rotated is idx 0.
 // match(...) and its overrided brother handle rotations
 static int counter[BOARD_SIZE] = { 0,0,0,0,0,0,0,0,0 };
@@ -106,16 +107,7 @@ int main() {
 }
 
 void log() {
-	// counter[] is an array with GAME_SIZE-1 length
-	// since each number can only iterate to GAME_SIZE-1
-	// before tripping the previous, this array turns
-	// into a base-(GAME_SIZE-1) number
-
-	unsigned int num = counter[BOARD_SIZE-1];
-	for (int i = BOARD_SIZE - 1; i >= BOARD_SIZE - 9; i--)
-		num += counter[i] * pow(BOARD_SIZE-1, -i + BOARD_SIZE - 1);
-
-	printf("[MATH] Number of iterations: %s\n", convert_num(num).c_str());
+	printf("[MATH] Number of iterations: %s\n", convert_num(iterations).c_str());
 	printf("[MATH] Number of matches tested: %s\n", convert_num(match_counter).c_str());
 }
 
@@ -146,6 +138,7 @@ std::string convert_num(int n) {
 }
 
 void calculate(int idx) { 
+	iterations++;
 	int piece = 0;
 	int type = 0;
 	switch (idx) {
