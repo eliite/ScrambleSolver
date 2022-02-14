@@ -12,7 +12,7 @@ entire image.
 
 ## Purpose
 
-![Scramble Squares Planets](Example1.jpeg)
+![Scramble Squares Planets](images/Example1.jpeg)
 
 When looking at the puzzle typically intended for children, it is hard to imagine a purpose for programmers to attempt such a challenge. To give
 a perspective of the intensity of the puzzle, a relevant property is statistics. Below are the possibilities:
