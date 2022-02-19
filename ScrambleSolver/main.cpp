@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <math.h>
 #include <string>
@@ -60,6 +61,8 @@ static int step = 0;
 static board_t board, completed;
 // keep track of which original pieces are used
 static std::vector<int> used;
+// before, after calculation
+static std::chrono::steady_clock::time_point before, after;
 
 // avoid losing track of original orientation
 int get_rotated_side(square_t s1, int idx); 
@@ -109,6 +112,7 @@ int main() {
 void log() {
 	printf("[MATH] Number of iterations: %s\n", convert_num(iterations).c_str());
 	printf("[MATH] Number of matches tested: %s\n", convert_num(match_counter).c_str());
+	printf("[MATH] Execution time: %lli", std::chrono::duration_cast<std::chrono::nanoseconds>(after-before).count());
 }
 
 std::string convert_num(int n) {
@@ -138,9 +142,12 @@ std::string convert_num(int n) {
 }
 
 void calculate(int idx) { 
-	iterations++;
-	int piece = 0;
-	int type = 0;
+	if (!iterations)
+		before = std::chrono::high_resolution_clock::now();
+
+	int piece = 0, type = 0, side = 0;
+
+	++iterations;
 	switch (idx) {
 	case 0:
 		type = -1;
@@ -149,11 +156,13 @@ void calculate(int idx) {
 	case 2:
 		type = 0;
 		piece = idx - 1;
+		side = 1;
 		break;
 	case 3:
 	case 6:
 		type = 1;
 		piece = idx - 3;
+		side = 2;
 		break;
 	case 4:
 	case 5:
@@ -164,87 +173,67 @@ void calculate(int idx) {
 		break;
 	}
 
-	if (type == -1) {
-		used.clear();
-		erase_board(completed);
+	auto decrement = [idx](bool clear = false) {
+		if (!clear) {
+			used.pop_back();
+			erase_board(completed, idx - 1);
 
-		board.square[counter[idx] / 4].rotation = (counter[idx] % 4);
-		set_square(completed.square[idx], board.square[counter[idx] / 4]);
-
-		counter[idx]++;
-		used.push_back(counter[idx] / 4);
-		step++;
-	}
-	else if (type == 0) {
-		for (int i = counter[idx]; i <= BOARD_SIZE; i++) {
-			if (i >= BOARD_SIZE) {
-				used.pop_back();
-				erase_board(completed, idx - 1);
-
-				step--;
-				counter[idx] = 0;
-				break;
-			}
-			else if ((std::find(used.begin(), used.end(), i) == used.end()) &&
-				match(completed.square[idx - 1], board.square[i], 1)) {
-				counter[idx]++;
-				used.push_back(i);
-
-				set_square(completed.square[idx], board.square[i]);
-				step++;
-				break;
-			}
-			else
-				counter[idx]++;
+			step--;
+			counter[idx] = 0;
 		}
-	}
-	else if (type == 1) {
-		for (int i = counter[idx]; i <= BOARD_SIZE; i++) {
-			if (i >= BOARD_SIZE) {
-				used.pop_back();
-				erase_board(completed, idx-1);
-
-				step--;
-				counter[idx] = 0;
-				break;
-			}
-			else if ((std::find(used.begin(), used.end(), i) == used.end()) &&
-				match(completed.square[piece], board.square[i], 2)) {
-				counter[idx]++;
-				used.push_back(i);
-
-				set_square(completed.square[idx], board.square[i]);
-				if (idx == BOARD_SIZE - 1) step = -1;
-				else step++;
-				break;
-			}
-			else
-				counter[idx]++;
+		else {
+			used.clear();
+			erase_board(completed);
 		}
-	}
-	else if (type == 2) {
-		for (int i = counter[idx]; i <= BOARD_SIZE; i++) {
-			if (i >= BOARD_SIZE) {
-				used.pop_back();
-				erase_board(completed, idx - 1);
+	};
 
-				step--;
-				counter[idx] = 0;
-				break;
-			}
-			else if ((std::find(used.begin(), used.end(), i) == used.end()) &&
-				match(board.square[i], completed.square[piece], completed.square[piece+2], 2, 1)) {
-				counter[idx]++;
-				used.push_back(i);
+	auto increment = [idx](int i) {
+		set_square(completed.square[idx], board.square[i]);
 
-				set_square(completed.square[idx], board.square[i]);
-				if (idx == BOARD_SIZE - 1) step = -1;
-				else step++;
-				break;
-			}
-			else
-				counter[idx]++;
+		if (idx != BOARD_SIZE - 1) {
+			++step;
+			++counter[idx];
+			used.push_back(i);
 		}
+		else {
+			after = std::chrono::high_resolution_clock::now();
+			step = -1;
+		}
+	};
+
+	auto match_in = [type, piece, side](int i) {
+		if ((std::find(used.begin(), used.end(), i) != used.end())) return false;
+
+		switch (type) {
+		case 0:
+		case 1:
+			return match(completed.square[piece], board.square[i], side);
+		case 2:
+			return match(board.square[i], completed.square[piece], completed.square[piece + 2], 2, 1);
+		default:
+			return false;
+		}
+	};
+
+	if (idx == 0) {
+		decrement(true);
+
+		board.square[counter[0] / 4].rotation = (counter[0] % 4);
+		increment(counter[0] / 4);
+		return;
+	}
+	
+	for (int i = counter[idx]; i <= BOARD_SIZE; i++) {
+		if (i >= BOARD_SIZE) {
+			decrement();
+			break;
+		}
+		else if (match_in(i)) {
+			increment(i);
+			break;
+		}
+		else
+			counter[idx]++;
 	}
 }
 
