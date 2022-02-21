@@ -112,7 +112,7 @@ int main() {
 void log() {
 	printf("[MATH] Number of iterations: %s\n", convert_num(iterations).c_str());
 	printf("[MATH] Number of matches tested: %s\n", convert_num(match_counter).c_str());
-	printf("[MATH] Execution time: %lli", std::chrono::duration_cast<std::chrono::nanoseconds>(after-before).count());
+	printf("[MATH] Execution time: %lli microseconds", std::chrono::duration_cast<std::chrono::microseconds>(after-before).count());
 }
 
 std::string convert_num(int n) {
