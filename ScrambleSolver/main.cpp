@@ -1,13 +1,10 @@
 #include <chrono>
-#include <iostream>
-#include <math.h>
-#include <string>
 #include <vector>
 #include <Windows.h>
 
 #define BOARD_SIZE 9
 
-#define EARTH_NORTH 1 // 2 landmasses
+#define EARTH_NORTH 1 // 2 landmassesB
 #define EARTH_SOUTH -1
 
 #define SATURN_UP 2 // the way the front ring points
@@ -28,12 +25,12 @@
 typedef class c_square {
 public:
 	c_square();
-	c_square(int* sides, int idx);
+	c_square(short* sides, short idx);
 	void reset();
 public:
-	int side[4] = { 0, 0, 0, 0 };
-	int index = 0;
-	int rotation = 0;
+	short side[4] = { 0, 0, 0, 0 };
+	short index = 0;
+	short rotation = 0;
 } square_t;
 
 /* PIECE ORIENTATION */
@@ -49,39 +46,39 @@ public:
 } board_t;
 
 // lets keep track of how many times we attempt a match
-static int match_counter = 0;
+static short match_counter = 0;
 // keep track of iterations
-static int iterations = 0;
+static short iterations = 0;
 // the only piece that needs rotated is idx 0.
 // match(...) and its overrided brother handle rotations
-static int counter[BOARD_SIZE] = { 0,0,0,0,0,0,0,0,0 };
+static short counter[BOARD_SIZE] = { 0,0,0,0,0,0,0,0,0 };
 // keep track of which piece we are calculating
-static int step = 0;
+static short step = 0;
 // one array for input board, one array for output board
 static board_t board, completed;
 // keep track of which original pieces are used
-static std::vector<int> used;
+static std::vector<short> used;
 // before, after calculation
 static std::chrono::steady_clock::time_point before, after;
 
 // avoid losing track of original orientation
-int get_rotated_side(square_t s1, int idx); 
+static short get_rotated_side(square_t s1, short idx); 
 // in order to match two sides, the "opposite side" needs to be calculated. essentially the same as 0 deg and 180 deg
-int get_opposite_side(int idx); 
+static short get_opposite_side(short idx); 
 
 // match one piece with one piece
-bool match(square_t s1, square_t& s2, int idx, bool rotate = true); 
+static bool match(square_t s1, square_t& s2, short idx, bool rotate = true);
 // match one piece with two pieces
-bool match(square_t& main, square_t s1, square_t s2, int c, int d); 
+static bool match(square_t& main, square_t s1, square_t s2, short c, short d);
 
 // properly copy all data from input square to output square
-void set_square(square_t& s1, square_t& s2); 
+static void set_square(square_t& s1, square_t& s2);
 // print output. 
-void print_board(board_t b = completed); 
+static void print_board(board_t b = completed);
 // clear a board (i LOVE default parameters)
-void erase_board(board_t& b); 
+static void erase_board(board_t& b);
 // clear a board to allow for a reiteration
-void erase_board(board_t& b, int upto); 
+static void erase_board(board_t& b, short upto);
 // the HEART FUNCTION of this solver
 // automatically calculates which pieces need to be matched, organizes each method into a type,
 // and calculates each piece according to type.
@@ -89,12 +86,12 @@ void erase_board(board_t& b, int upto);
 // TYPE 0	: 1 piece matching
 // TYPE 1	: 1 piece matching (match top)
 // TYPE 2	: 2 piece matching (match top and left)
-void calculate(int idx);
+void calculate(short idx);
 // what is the fun in completing a statistical challenge without showing the actual statistics?
 void log();
 
 // we need to format numbers, that way they look nice
-std::string convert_num(int n);
+std::string convert_num(short n);
 
 int main() {
 	board.init();
@@ -115,13 +112,12 @@ void log() {
 	printf("[MATH] Execution time: %lli microseconds", std::chrono::duration_cast<std::chrono::microseconds>(after-before).count());
 }
 
-std::string convert_num(int n) {
+std::string convert_num(short n) {
 	std::string ans = "";
 	std::string num = std::to_string(n);
 
-	int count = 0;
-	for (int i = num.size() - 1;
-		i >= 0; i--) {
+	short count = 0;
+	for (short i = num.size() - 1; i >= 0; i--) {
 		count++;
 		ans.push_back(num[i]);
 
@@ -132,20 +128,17 @@ std::string convert_num(int n) {
 	}
 
 	reverse(ans.begin(), ans.end());
-
-	if (ans.size() % 4 == 0) {
-
-		// Remove ','
+	if (ans.size() % 4 == 0)
 		ans.erase(ans.begin());
-	}
+
 	return ans;
 }
 
-void calculate(int idx) { 
+void calculate(short idx) { 
 	if (!iterations)
 		before = std::chrono::high_resolution_clock::now();
 
-	int piece = 0, type = 0, side = 0;
+	short piece = 0, type = 0, side = 0;
 
 	++iterations;
 	switch (idx) {
@@ -187,7 +180,7 @@ void calculate(int idx) {
 		}
 	};
 
-	auto increment = [idx](int i) {
+	auto increment = [idx](short i) {
 		set_square(completed.square[idx], board.square[i]);
 
 		if (idx != BOARD_SIZE - 1) {
@@ -201,7 +194,7 @@ void calculate(int idx) {
 		}
 	};
 
-	auto match_in = [type, piece, side](int i) {
+	auto match_in = [type, piece, side](short i) {
 		if ((std::find(used.begin(), used.end(), i) != used.end())) return false;
 
 		switch (type) {
@@ -223,7 +216,7 @@ void calculate(int idx) {
 		return;
 	}
 	
-	for (int i = counter[idx]; i <= BOARD_SIZE; i++) {
+	for (short i = counter[idx]; i <= BOARD_SIZE; i++) {
 		if (i >= BOARD_SIZE) {
 			decrement();
 			break;
@@ -238,18 +231,18 @@ void calculate(int idx) {
 }
 
 void erase_board(board_t& b) {
-	for (int i = 0; i < BOARD_SIZE; i++)
+	for (short i = 0; i < BOARD_SIZE; i++)
 		b.square[i].reset();
 }
 
-void erase_board(board_t& b, int upto) {
-	for (int i = upto; i < BOARD_SIZE; i++)
+void erase_board(board_t& b, short upto) {
+	for (short i = upto; i < BOARD_SIZE; i++)
 		b.square[i].reset();
 }
 
 void print_board(board_t b) {
 	printf("[NUMERICAL REPRESENTATION]\n");
-	for (int i = 0; i < BOARD_SIZE; i++) {
+	for (short i = 0; i < BOARD_SIZE; i++) {
 		printf("[OUTPUT] Square %i:\t%i\t|\t%i\t|\t%i\t|\t%i\n",
 			i,
 			get_rotated_side(b.square[i], 0),
@@ -262,8 +255,8 @@ void print_board(board_t b) {
 	printf("\n\n"); // clear
 	printf("[PHYSICAL REPRESENTATION]\n");
 	printf("[INFO] P1 (R0) - Piece 1 with 0 CW rotations\n");
-	for (int d = 0; d < 3; d++) {
-		for (int i = 0; i < 3; i++) {
+	for (short d = 0; d < 3; d++) {
+		for (short i = 0; i < 3; i++) {
 			printf("P%i (%iR)\t\t", completed.square[3*d+i].index+1, completed.square[3*d+i].rotation);
 		}
 		printf("\n");
@@ -272,15 +265,15 @@ void print_board(board_t b) {
 }
 
 void set_square(square_t& s1, square_t& s2) {
-	for (int i = 0; i < 4; i++) s1.side[i] = s2.side[i];
+	for (short i = 0; i < 4; i++) s1.side[i] = s2.side[i];
 	s1.rotation = s2.rotation;
 	s1.index = s2.index;
 }
 
-bool match(square_t s1, square_t& s2, int idx, bool rotate) {
+bool match(square_t s1, square_t& s2, short idx, bool rotate) {
 	match_counter++;
 	if (rotate) {
-		for (int i = 0; i < 4; i++) {
+		for (short i = 0; i < 4; i++) {
 			s2.rotation = i;
 
 			if ((get_rotated_side(s1, idx) + get_rotated_side(s2, get_opposite_side(idx))) == 0) {
@@ -298,7 +291,7 @@ bool match(square_t s1, square_t& s2, int idx, bool rotate) {
 	return false;
 }
 
-bool match(square_t& main, square_t s1, square_t s2, int c, int d) {
+bool match(square_t& main, square_t s1, square_t s2, short c, short d) {
 	bool ret = false;
 	if (match(s1, main, c)) {
 		if (match(s2, main, d, false))
@@ -313,8 +306,8 @@ bool match(square_t& main, square_t s1, square_t s2, int c, int d) {
 	return ret;
 }
 
-int get_rotated_side(square_t s1, int idx) {
-	int new_idx = idx - s1.rotation;
+short get_rotated_side(square_t s1, short idx) {
+	short new_idx = idx - s1.rotation;
 	while (new_idx < 0)
 		new_idx += 4;
 	while (new_idx > 3)
@@ -323,8 +316,8 @@ int get_rotated_side(square_t s1, int idx) {
 	return s1.side[new_idx];
 }
 
-int get_opposite_side(int idx) {
-	int side = idx - 2;
+short get_opposite_side(short idx) {
+	short side = idx - 2;
 
 	while (side < 0)
 		side += 4;
@@ -335,7 +328,7 @@ int get_opposite_side(int idx) {
 }
 
 c_square::c_square() {}
-c_square::c_square(int* sides, int idx) {
+c_square::c_square(short* sides, short idx) {
 	side[0] = sides[0];
 	side[1] = sides[1];
 	side[2] = sides[2];
@@ -355,13 +348,13 @@ void c_square::reset() {
 
 c_board::c_board() {}
 void c_board::init() {
-	this->square[0] = c_square(new int[] { JUPITER_DARK,	EARTH_NORTH,	JUPITER_LIGHT,	MARS_BOTTOM}, 0);
-	this->square[1] = c_square(new int[] { JUPITER_LIGHT,	SATURN_UP,		MARS_BOTTOM,	SATURN_UP }, 1);
-	this->square[2] = c_square(new int[] { MARS_TOP,		EARTH_NORTH,	EARTH_SOUTH,	SATURN_DOWN }, 2);
-	this->square[3] = c_square(new int[] { MARS_BOTTOM,		SATURN_DOWN,	JUPITER_DARK,	EARTH_SOUTH}, 3);
-	this->square[4] = c_square(new int[] { MARS_TOP,		JUPITER_DARK,	EARTH_SOUTH,	SATURN_UP }, 4);
-	this->square[5] = c_square(new int[] { EARTH_NORTH,		SATURN_DOWN,	MARS_BOTTOM,	JUPITER_LIGHT  }, 5);
-	this->square[6] = c_square(new int[] { MARS_TOP,		SATURN_UP,		EARTH_SOUTH,	JUPITER_DARK }, 6);
-	this->square[7] = c_square(new int[] { EARTH_NORTH,		JUPITER_LIGHT,	MARS_BOTTOM,	SATURN_DOWN }, 7);
-	this->square[8] = c_square(new int[] { MARS_TOP,		SATURN_DOWN,	EARTH_NORTH,	JUPITER_LIGHT }, 8);
+	this->square[0] = c_square(new short[] { JUPITER_DARK,		EARTH_NORTH,	JUPITER_LIGHT,	MARS_BOTTOM}, 0);
+	this->square[1] = c_square(new short[] { JUPITER_LIGHT,		SATURN_UP,		MARS_BOTTOM,	SATURN_UP }, 1);
+	this->square[2] = c_square(new short[] { MARS_TOP,			EARTH_NORTH,	EARTH_SOUTH,	SATURN_DOWN }, 2);
+	this->square[3] = c_square(new short[] { MARS_BOTTOM,		SATURN_DOWN,	JUPITER_DARK,	EARTH_SOUTH}, 3);
+	this->square[4] = c_square(new short[] { MARS_TOP,			JUPITER_DARK,	EARTH_SOUTH,	SATURN_UP }, 4);
+	this->square[5] = c_square(new short[] { EARTH_NORTH,		SATURN_DOWN,	MARS_BOTTOM,	JUPITER_LIGHT  }, 5);
+	this->square[6] = c_square(new short[] { MARS_TOP,			SATURN_UP,		EARTH_SOUTH,	JUPITER_DARK }, 6);
+	this->square[7] = c_square(new short[] { EARTH_NORTH,		JUPITER_LIGHT,	MARS_BOTTOM,	SATURN_DOWN }, 7);
+	this->square[8] = c_square(new short[] { MARS_TOP,			SATURN_DOWN,	EARTH_NORTH,	JUPITER_LIGHT }, 8);
 }
