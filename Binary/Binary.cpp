@@ -73,7 +73,7 @@ int main()
     printf("\n[MATH] Execution time: %lli microseconds", std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
 }
 
-inline int get_side(int s, int i) {
+int get_side(int s, int i) {
 
     int p = (3 * clamp(i - (s >> 12), 4, 0));
     int k = ((1 << 3) - 1) << p;
@@ -83,7 +83,7 @@ inline int get_side(int s, int i) {
     return ((ret & 0b100) >= 0b100) ? -(ret-0b100+1) : (ret+1);
 }
 
-inline int clamp(int val, int max, int min) {
+int clamp(int val, int max, int min) {
     while (val >= max)
         val -= max;
     while (val < min)
@@ -92,11 +92,11 @@ inline int clamp(int val, int max, int min) {
     return val;
 }
 
-inline void set_rotation(int i, int r) {
+void set_rotation(int i, int r) {
     solve[i] += r * (1 << 12);
 }
 
-inline int match(int i, int s ) {
+int match(int i, int s ) {
     switch (i) {
     case 1:
     case 2:
