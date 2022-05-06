@@ -4,7 +4,7 @@
 
 #define BOARD_SIZE 9
 
-#define EARTH_NORTH 1 // 2 landmassesB
+#define EARTH_NORTH 1 // 2 landmasses
 #define EARTH_SOUTH -1
 
 #define SATURN_UP 2 // the way the front ring points
@@ -128,42 +128,41 @@ std::string convert_num(short n) {
 	}
 
 	reverse(ans.begin(), ans.end());
-	if (ans.size() % 4 == 0)
+	if ((ans.size() & 3) == 0)
 		ans.erase(ans.begin());
 
 	return ans;
 }
 
 void calculate(short idx) { 
-	if (!iterations)
-		before = std::chrono::high_resolution_clock::now();
-
 	short piece = 0, type = 0, side = 0;
 
-	++iterations;
+	if (++iterations == 1)
+		before = std::chrono::high_resolution_clock::now();
+
 	switch (idx) {
-	case 0:
-		type = -1;
-		break;
-	case 1:
-	case 2:
-		type = 0;
-		piece = idx - 1;
-		side = 1;
-		break;
-	case 3:
-	case 6:
-		type = 1;
-		piece = idx - 3;
-		side = 2;
-		break;
-	case 4:
-	case 5:
-	case 7:
-	case 8:
-		type = 2;
-		piece = idx - 3;
-		break;
+		case 0:
+			type = -1;
+			break;
+		case 1:
+		case 2:
+			type = 0;
+			piece = idx - 1;
+			side = 1;
+			break;
+		case 3:
+		case 6:
+			type = 1;
+			piece = idx - 3;
+			side = 2;
+			break;
+		case 4:
+		case 5:
+		case 7:
+		case 8:
+			type = 2;
+			piece = idx - 3;
+			break;
 	}
 
 	auto decrement = [idx](bool clear = false) {
@@ -198,25 +197,25 @@ void calculate(short idx) {
 		if ((std::find(used.begin(), used.end(), i) != used.end())) return false;
 
 		switch (type) {
-		case 0:
-		case 1:
-			return match(completed.square[piece], board.square[i], side);
-		case 2:
-			return match(board.square[i], completed.square[piece], completed.square[piece + 2], 2, 1);
-		default:
-			return false;
+			case 0:
+			case 1:
+				return match(completed.square[piece], board.square[i], side);
+			case 2:
+				return match(board.square[i], completed.square[piece], completed.square[piece + 2], 2, 1);
+			default:
+				return false;
 		}
 	};
 
 	if (idx == 0) {
 		decrement(true);
 
-		board.square[counter[0] / 4].rotation = (counter[0] % 4);
-		increment(counter[0] / 4);
+		board.square[counter[0] >> 2].rotation = (counter[0] & 3);
+		increment(counter[0] >> 2);
 		return;
 	}
 	
-	for (short i = counter[idx]; i <= BOARD_SIZE; i++) {
+	for (short i = counter[idx]; i <= BOARD_SIZE; i++)
 		if (i >= BOARD_SIZE) {
 			decrement();
 			break;
@@ -227,7 +226,6 @@ void calculate(short idx) {
 		}
 		else
 			counter[idx]++;
-	}
 }
 
 void erase_board(board_t& b) {
@@ -265,44 +263,41 @@ void print_board(board_t b) {
 }
 
 void set_square(square_t& s1, square_t& s2) {
-	for (short i = 0; i < 4; i++) s1.side[i] = s2.side[i];
+	memcpy(s1.side, s2.side, sizeof s1.side);
+
 	s1.rotation = s2.rotation;
 	s1.index = s2.index;
 }
 
 bool match(square_t s1, square_t& s2, short idx, bool rotate) {
 	match_counter++;
-	if (rotate) {
+	if (rotate)
 		for (short i = 0; i < 4; i++) {
 			s2.rotation = i;
 
-			if ((get_rotated_side(s1, idx) + get_rotated_side(s2, get_opposite_side(idx))) == 0) {
+			if ((get_rotated_side(s1, idx) == -get_rotated_side(s2, get_opposite_side(idx)))) {
 				return true;
 				break;
 			}
 			else
 				continue;
 		}
-	}
-	else {
-		if ((get_rotated_side(s1, idx) + get_rotated_side(s2, get_opposite_side(idx))) == 0)
+	else
+		if ((get_rotated_side(s1, idx) == -get_rotated_side(s2, get_opposite_side(idx))) )
 			return true;
-	}
 	return false;
 }
 
 bool match(square_t& main, square_t s1, square_t s2, short c, short d) {
 	bool ret = false;
-	if (match(s1, main, c)) {
+	if (match(s1, main, c))
 		if (match(s2, main, d, false))
 			ret = true;
 		else ret = false;
-	}
-	if (!ret && match(s2, main, d)) {
+	if (!ret && match(s2, main, d))
 		if (match(s1, main, c, false))
 			ret = true;
 		else ret = false;
-	}
 	return ret;
 }
 
@@ -329,29 +324,23 @@ short get_opposite_side(short idx) {
 
 c_square::c_square() {}
 c_square::c_square(short* sides, short idx) {
-	side[0] = sides[0];
-	side[1] = sides[1];
-	side[2] = sides[2];
-	side[3] = sides[3];
+	memcpy(side, sides, sizeof side);
 
 	index = idx;
 }
 
 void c_square::reset() {
-	side[0] = 0;
-	side[1] = 0;
-	side[2] = 0;
-	side[3] = 0;
+	memset(side, 0, sizeof side);
 
 	rotation = 0;
 }
 
 c_board::c_board() {}
 void c_board::init() {
-	this->square[0] = c_square(new short[] { JUPITER_DARK,		EARTH_NORTH,	JUPITER_LIGHT,	MARS_BOTTOM}, 0);
+	this->square[0] = c_square(new short[] { JUPITER_DARK,		EARTH_NORTH,	JUPITER_LIGHT,	MARS_BOTTOM }, 0);
 	this->square[1] = c_square(new short[] { JUPITER_LIGHT,		SATURN_UP,		MARS_BOTTOM,	SATURN_UP }, 1);
 	this->square[2] = c_square(new short[] { MARS_TOP,			EARTH_NORTH,	EARTH_SOUTH,	SATURN_DOWN }, 2);
-	this->square[3] = c_square(new short[] { MARS_BOTTOM,		SATURN_DOWN,	JUPITER_DARK,	EARTH_SOUTH}, 3);
+	this->square[3] = c_square(new short[] { MARS_BOTTOM,		SATURN_DOWN,	JUPITER_DARK,	EARTH_SOUTH }, 3);
 	this->square[4] = c_square(new short[] { MARS_TOP,			JUPITER_DARK,	EARTH_SOUTH,	SATURN_UP }, 4);
 	this->square[5] = c_square(new short[] { EARTH_NORTH,		SATURN_DOWN,	MARS_BOTTOM,	JUPITER_LIGHT  }, 5);
 	this->square[6] = c_square(new short[] { MARS_TOP,			SATURN_UP,		EARTH_SOUTH,	JUPITER_DARK }, 6);
