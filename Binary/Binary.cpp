@@ -11,11 +11,10 @@
 
 void set_side(int a, int b, int i);
 void set_side(int a, int b);
-int calculate_last();
-
-void reset();
-int get_side(int s, int i);
 void set_rotation(int i, int r);
+void reset();
+
+int get_side(int s, int i);
 int clamp(int, int, int);
 int match(int i, int s); 
 
@@ -33,8 +32,8 @@ static int square[] = {
         0b00011101000010
 };
 
-static int solve[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-static int c[] =     { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static int solve[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    c[] =     { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 static int count[] = { 0, 0, 0 };
 
@@ -50,24 +49,6 @@ int main()
     for (int i = 1; i < 9; ) {
         while (c[i] < 9) {
             ++count[0];
-
-            //printf("c[%i,%i,%i,%i,%i,%i,%i,%i,%i]\n", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8]);
-
-            if (i == 8) {
-                int ret = calculate_last();
-                int m = match(i, square[ret]);
-                if (m != -1) {
-                    set_side(i, m, ret);
-                    c[i] = ret;
-                    i = 9;
-                    break;
-                }
-                else {
-                    ++c[i - 1];
-                    --i;
-                    break;
-                }
-            }
 
             if (!contains(c[i])) {
                 int ret = match(i, square[c[i]]);
@@ -148,13 +129,6 @@ int main()
     printf("\n[MATH] Execution time: %lli microseconds", std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
 
     Sleep(INFINITE);
-}
-
-int calculate_last() {
-    int temp = used;
-    temp ^= 0b111111111;
-
-    return log2(temp);
 }
 
 void set_side(int a, int b) {
