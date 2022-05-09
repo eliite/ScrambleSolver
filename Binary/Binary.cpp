@@ -4,11 +4,14 @@
 #include <iostream>
 #include <bitset>
 #include <chrono>
+#include <math.h>
 #include <format>
 #include <vector>
+#include <Windows.h>
 
 void set_side(int a, int b, int i);
 void set_side(int a, int b);
+int calculate_last();
 
 void reset();
 int get_side(int s, int i);
@@ -47,6 +50,24 @@ int main()
     for (int i = 1; i < 9; ) {
         while (c[i] < 9) {
             ++count[0];
+
+            //printf("c[%i,%i,%i,%i,%i,%i,%i,%i,%i]\n", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8]);
+
+            if (i == 8) {
+                int ret = calculate_last();
+                int m = match(i, square[ret]);
+                if (m != -1) {
+                    set_side(i, m, ret);
+                    c[i] = ret;
+                    i = 9;
+                    break;
+                }
+                else {
+                    ++c[i - 1];
+                    --i;
+                    break;
+                }
+            }
 
             if (!contains(c[i])) {
                 int ret = match(i, square[c[i]]);
@@ -125,6 +146,15 @@ int main()
     printf("\n[OUTPUT] matches = %i", count[1]);
     printf("\n[OUTPUT] contains = %i", count[2]);
     printf("\n[MATH] Execution time: %lli microseconds", std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
+
+    Sleep(INFINITE);
+}
+
+int calculate_last() {
+    int temp = used;
+    temp ^= 0b111111111;
+
+    return log2(temp);
 }
 
 void set_side(int a, int b) {
@@ -162,7 +192,7 @@ void set_rotation(int i, int r) {
     solve[i] += r * 4096;
 }
 
-int match(int i, int s ) {
+int match(int i, int s) {
     ++count[1];
 
     switch (i) {
