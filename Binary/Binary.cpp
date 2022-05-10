@@ -1,6 +1,3 @@
-// Binary.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
 #include <bitset>
 #include <chrono>
@@ -14,11 +11,11 @@ void set_side(int a, int b);
 void set_rotation(int i, int r);
 void reset();
 
-int get_side(int s, int i);
-int clamp(int, int, int);
-int match(int i, int s); 
+inline int get_side(int s, int i);
+inline int clamp(int, int, int);
+inline int match(int i, int s); 
 
-bool contains(int i);
+inline bool contains(int i);
 
 static int square[] = {
         0b00110000010111,
@@ -33,11 +30,9 @@ static int square[] = {
 };
 
 static int solve[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    c[] =     { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-static int count[] = { 0, 0, 0 };
-
-static int used = 0;
+    c[] =            { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    count[] =        { 0, 0, 0 },
+    used =             0;
 
 static std::chrono::steady_clock::time_point before, after;
 
@@ -116,16 +111,16 @@ int main()
     after = std::chrono::high_resolution_clock::now();
 
     for (int i = 0; i < 9; i++)
-        printf("\n[OUTPUT] Square %i : [%i, %i, %i, %i]", i, get_side(solve[i], 0), get_side(solve[i], 1), get_side(solve[i], 2), get_side(solve[i], 3));
+        printf("[OUTPUT] Square %i : [%i, %i, %i, %i]\n", i, get_side(solve[i], 0), get_side(solve[i], 1), get_side(solve[i], 2), get_side(solve[i], 3));
 
-    printf("\n\n[SQUARES]\n%i(%i) %i(%i) %i(%i)\n%i(%i) %i(%i) %i(%i)\n%i(%i) %i(%i) %i(%i)\n", 
-        c[0]/4, (solve[0] & (0b11 << 12))>> 12, c[1], (solve[1] & (0b11 << 12))>> 12, c[2], (solve[2] & (0b11 << 12)) >> 12,
-        c[3], (solve[3] & (0b11 << 12))>> 12, c[4], (solve[4] & (0b11 << 12))>> 12, c[5], (solve[5] & (0b11 << 12)) >> 12,
-        c[6], (solve[6] & (0b11 << 12))>> 12, c[7], (solve[7] & (0b11 << 12))>> 12, c[8], (solve[8] & (0b11 << 12)) >> 12);
+    printf("\n[SQUARES]\n%i(%i)\t%i(%i)\t%i(%i)\n%i(%i)\t%i(%i)\t%i(%i)\t\n%i(%i)\t%i(%i)\t%i(%i)\t\n",
+        c[0]/4, (solve[0] >> 12) & 3, c[1], (solve[1] >> 12) & 3, c[2], (solve[2] >> 12) & 3,
+        c[3], (solve[3] >> 12) & 3, c[4], (solve[4] >> 12) & 3, c[5], (solve[5] >> 12) & 3,
+        c[6], (solve[6] >> 12) & 3, c[7], (solve[7] >> 12) & 3, c[8], (solve[8] >> 12) & 3);
 
     printf("\n[OUTPUT] iterations = %i", count[0]);
-    printf("\n[OUTPUT] matches = %i", count[1]);
     printf("\n[OUTPUT] contains = %i", count[2]);
+    printf("\n[OUTPUT] matches = %i", count[1]);
     printf("\n[MATH] Execution time: %lli microseconds", std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
 
     Sleep(INFINITE);
@@ -143,17 +138,17 @@ void set_side(int a, int b, int i) {
     used |= (1 << i);
 }
 
-int get_side(int s, int i) {
+inline int get_side(int s, int i) {
 
     int p = 9-(3 * clamp(i - (s >> 12), 4, 0));
-    int k = (7) << p;
+    int k = 7 << p;
 
     int ret = (s & k) >> p;
 
     return ((ret & 4) >= 4) ? -(ret-3) : (ret+1);
 }
 
-int clamp(int val, int max, int min) {
+inline int clamp(int val, int max, int min) {
     while (val >= max)
         val -= max;
     while (val < min)
@@ -163,10 +158,10 @@ int clamp(int val, int max, int min) {
 }
 
 void set_rotation(int i, int r) {
-    solve[i] += r * 4096;
+    solve[i] += (r << 12);
 }
 
-int match(int i, int s) {
+inline int match(int i, int s) {
     ++count[1];
 
     switch (i) {
@@ -215,13 +210,13 @@ void reset() {
 
         used |= (1 << c[i]);
     }
-    used |= (1 << (c[0] / 4));
+    used |= (1 << (c[0] >> 2));
 }
 
-bool contains(int i) {
+inline bool contains(int i) {
     ++count[2];
 
-    if (((used >> i) & 1) == 1) 
+    if (((used >> i) & 1))
         return true;
     else
         return false;
