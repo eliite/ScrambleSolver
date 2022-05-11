@@ -1,151 +1,161 @@
-#include <iostream>
-#include <bitset>
 #include <chrono>
-#include <math.h>
-#include <format>
-#include <vector>
 #include <Windows.h>
 
-void set_side(int a, int b, int i);
-void set_side(int a, int b);
-void set_rotation(int i, int r);
-void reset(int j);
+// calculate the entire board
+inline void calculate();
+// backtrack when two squares are impossible matches
+inline void reset(int j);
+// rotate a piece on the solved board
+inline void set_rotation(int i, int r);
+// set end[a] = b, where the piece index is i
+inline void set_side(int a, int b, int i);
+// set end[a] = start[b], where the piece index is b
+inline void set_side(int a, int b);
+// print the metrics and full output of the program
+inline void print_board();
 
-inline int get_side(int s, int i);
+// with rotations, we can +-max to get an equal rotation
 inline int clamp(int, int, int);
+// deconstruct binary integer to find a certain side
+inline int get_side(int s, int i);
+// attempt to match two squares
 inline int match(int i, int s); 
 
+// use a 9-bit string to identify placed squares
 inline bool contains(int i);
 
-static int square[] = {
-        0b00110000010111,
-        0b00010001111001,
-        0b00011000100101,
-        0b00111101110100,
-        0b00011110100001,
-        0b00000101111010,
-        0b00011001100110,
-        0b00000010111101,
-        0b00011101000010
+const int start[] = {
+        0b00110000010111, // 1
+        0b00011000100101, // 2
+        0b00010001111001, // 3
+        0b00111101110100, // 4
+        0b00011110100001, // 5
+        0b00000101111010, // 6
+        0b00011001100110, // 7
+        0b00000010111101, // 8
+        0b00011101000010, // 9
 };
 
-static int solve[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    c[] =            { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    count[] =        { 0, 0, 0 },
-    used =             0;
+int end[] =     { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    count[] =   { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    metric[] =  { 0, 0, 0 },
+    used =        0;
 
-static std::chrono::steady_clock::time_point before, after;
+std::chrono::steady_clock::time_point before, after;
 
 int main()
 {
+    calculate();
+    print_board();
+}
+
+
+inline void calculate() {
     before = std::chrono::high_resolution_clock::now();
 
     set_side(0, 0);
     for (int i = 1; i < 9; ) {
-        while (c[i] < 9) {
-            ++count[0];
+        while (count[i] < 9) {
+            ++metric[0];
 
-            if (!contains(c[i])) {
-                int ret = match(i, square[c[i]]);
+            if (!contains(count[i])) {
+                int ret = match(i, start[count[i]]);
 
                 if (ret != -1) {
-                    set_side(i, ret, c[i]);
+                    set_side(i, ret, count[i]);
                     ++i;
 
                     break;
                 }
             }
-            if (c[i] == 8) {
-                if (c[i - 1] < 8) {
-                    c[i] = 0;
-                    ++c[i - 1];
 
-                    solve[i] = 0;
+            if (count[i] == 8) {
+                count[i] = 0;
+                end[i] = 0;
+                if (count[i - 1] < 8) {
+                    ++count[i - 1];
 
                     if (i == 1) {
-                        set_side(0, c[0] >> 2);
-                        set_rotation(0, c[0] & 3);
+                        set_side(0, count[0] >> 2);
+                        set_rotation(0, count[0] & 3);
                     }
                     else --i;
                 }
                 else if (i != 1) {
-                    if (i > 2) {
-                        solve[i] = 0;
-                        solve[i - 1] = 0;
+                    end[i - 1] = 0;
 
-                        c[i] = 0;
-                        c[i - 1] = 0;
-                        ++c[i - 2];
-
-                        i -= 2;
-                    }
-                    else {
-                        solve[i] = 0;
-                        solve[i - 1] = 0;
-
-                        c[i] = 0;
-                        c[i - 1] = 0;
-
-                        set_side(0, ++c[0] >> 2);
-                        set_rotation(0, c[0] & 3);
+                    count[i - 1] = 0;
+                    switch (i) {
+                    case 2:
+                        set_side(0, ++count[0] >> 2);
+                        set_rotation(0, count[0] & 3);
 
                         i = 1;
+                        break;
+                    default:
+                        i -= 2;
+                        ++count[i];
+                        break;
                     }
-                } 
+                }
                 else {
-                    c[i] = 0;
-
-                    solve[i] = 0;
-
-                    set_side(0, ++c[0] >> 2);
-                    set_rotation(0, c[0] & 3);
+                    set_side(0, ++count[0] >> 2);
+                    set_rotation(0, count[0] & 3);
 
                     i = 1;
                 }
                 reset(i);
                 break;
             }
-            ++c[i];
+            ++count[i];
         }
     }
     after = std::chrono::high_resolution_clock::now();
+}
 
+inline void print_board() {
     for (int i = 0; i < 9; i++)
-        printf("[OUTPUT] Square %i : [%i, %i, %i, %i]\n", i, get_side(solve[i], 0), get_side(solve[i], 1), get_side(solve[i], 2), get_side(solve[i], 3));
+        printf("[OUTPUT] Square %i : [%i, %i, %i, %i]\n", i, get_side(end[i], 0), get_side(end[i], 1), get_side(end[i], 2), get_side(end[i], 3));
 
     printf("\n[SQUARES]\n%i(%i)\t%i(%i)\t%i(%i)\n%i(%i)\t%i(%i)\t%i(%i)\t\n%i(%i)\t%i(%i)\t%i(%i)\t\n",
-        c[0]/4, (solve[0] >> 12) & 3, c[1], (solve[1] >> 12) & 3, c[2], (solve[2] >> 12) & 3,
-        c[3], (solve[3] >> 12) & 3, c[4], (solve[4] >> 12) & 3, c[5], (solve[5] >> 12) & 3,
-        c[6], (solve[6] >> 12) & 3, c[7], (solve[7] >> 12) & 3, c[8], (solve[8] >> 12) & 3);
+        count[0] / 4, (end[0] >> 12) & 3, count[1], (end[1] >> 12) & 3, count[2], (end[2] >> 12) & 3,
+        count[3], (end[3] >> 12) & 3, count[4], (end[4] >> 12) & 3, count[5], (end[5] >> 12) & 3,
+        count[6], (end[6] >> 12) & 3, count[7], (end[7] >> 12) & 3, count[8], (end[8] >> 12) & 3);
 
-    printf("\n[OUTPUT] iterations = %i", count[0]);
-    printf("\n[OUTPUT] contains = %i", count[2]);
-    printf("\n[OUTPUT] matches = %i", count[1]);
+    printf("\n[OUTPUT] iterations = %i", metric[0]);
+    printf("\n[OUTPUT] contains = %i", metric[2]);
+    printf("\n[OUTPUT] matches = %i", metric[1]);
     printf("\n[MATH] Execution time: %lli microseconds", std::chrono::duration_cast<std::chrono::microseconds>(after - before).count());
 
     Sleep(INFINITE);
 }
 
-void set_side(int a, int b) {
-    solve[a] = square[b];
+inline void reset(int j) {
+    int z = 0;
+
+    used = 0 | (1 << (count[0] >> 2));
+    for (int i = 1; i <= j; i++) {
+        if (end[i] == 0 && ++z == 2)
+            return;
+
+        used |= (1 << count[i]);
+    }
+}
+
+inline void set_rotation(int i, int r) {
+    end[i] += (r << 12);
+}
+
+inline void set_side(int a, int b) {
+    end[a] = start[b];
 
     used |= (1 << b);
 }
 
-void set_side(int a, int b, int i) {
-    solve[a] = b;
+inline void set_side(int a, int b, int i) {
+    end[a] = b;
 
     used |= (1 << i);
-}
-
-inline int get_side(int s, int i) {
-
-    int p = 9-(3 * clamp(i - (s >> 12), 4, 0));
-    int k = 7 << p;
-
-    int ret = (s & k) >> p;
-
-    return ((ret & 4) >= 4) ? -(ret-3) : (ret+1);
 }
 
 inline int clamp(int val, int max, int min) {
@@ -157,12 +167,17 @@ inline int clamp(int val, int max, int min) {
     return val;
 }
 
-void set_rotation(int i, int r) {
-    solve[i] += (r << 12);
+inline int get_side(int s, int i) {
+    int p = 9-(3 * clamp(i - (s >> 12), 4, 0));
+    int k = 7 << p;
+
+    int ret = (s & k) >> p;
+
+    return ((ret & 4) >= 4) ? -(ret-3) : (ret+1);
 }
 
 inline int match(int i, int s) {
-    ++count[1];
+    ++metric[1];
 
     switch (i) {
     case 1:
@@ -170,7 +185,7 @@ inline int match(int i, int s) {
         for (int j = 0; j < 4; j++) {
             if (j > 0) s += 4096;
 
-            if (get_side(solve[i-1], 1) == -get_side(s, 3))
+            if (get_side(end[i-1], 1) == -get_side(s, 3))
                 return s;
         }
         return -1;
@@ -179,7 +194,7 @@ inline int match(int i, int s) {
         for (int j = 0; j < 4; j++) {
             if (j > 0) s += 4096;
 
-            if (get_side(solve[i - 3], 2) == -get_side(s, 0)) 
+            if (get_side(end[i - 3], 2) == -get_side(s, 0)) 
                 return s;
         }
         return -1;
@@ -190,34 +205,16 @@ inline int match(int i, int s) {
         for (int j = 0; j < 4; j++) {
             if (j > 0) s += 4096;
 
-            if ((get_side(solve[i-1], 1) == -get_side(s, 3)) &&
-                (get_side(solve[i-3], 2) == -get_side(s, 0)))
+            if ((get_side(end[i-1], 1) == -get_side(s, 3)) &&
+                (get_side(end[i-3], 2) == -get_side(s, 0)))
                 return s;
         }
         return -1;
-    default:
-        return -1;
     }
-}
-
-void reset(int j) {
-    int z = 0;
-
-    used = 0;
-    for (int i = 1; i <= j; i++) {
-        if (solve[i] == 0 && ++z == 2)
-            return;
-
-        used |= (1 << c[i]);
-    }
-    used |= (1 << (c[0] >> 2));
 }
 
 inline bool contains(int i) {
-    ++count[2];
+    ++metric[2];
 
-    if (((used >> i) & 1))
-        return true;
-    else
-        return false;
+    return ((used >> i) & 1);
 }
