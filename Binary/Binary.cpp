@@ -9,7 +9,7 @@
 void set_side(int a, int b, int i);
 void set_side(int a, int b);
 void set_rotation(int i, int r);
-void reset();
+void reset(int j);
 
 inline int get_side(int s, int i);
 inline int clamp(int, int, int);
@@ -102,7 +102,7 @@ int main()
 
                     i = 1;
                 }
-                reset();
+                reset(i);
                 break;
             }
             ++c[i];
@@ -200,11 +200,11 @@ inline int match(int i, int s) {
     }
 }
 
-void reset() {
+void reset(int j) {
     int z = 0;
 
     used = 0;
-    for (int i = 1; i < 9; i++) {
+    for (int i = 1; i <= j; i++) {
         if (solve[i] == 0 && ++z == 2)
             return;
 
