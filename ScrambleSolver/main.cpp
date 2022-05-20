@@ -208,6 +208,9 @@ void calculate(short idx) {
 		}
 	};
 
+	sizeof c_square;
+	sizeof c_board;
+
 	if (idx == 0) {
 		decrement(true);
 

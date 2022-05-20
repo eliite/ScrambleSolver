@@ -25,15 +25,15 @@ inline int match(int i, int s);
 inline bool contains(int i);
 
 const int start[] = {
-        0b00110000010111, // 1
-        0b00011000100101, // 2
-        0b00010001111001, // 3
-        0b00111101110100, // 4
-        0b00011110100001, // 5
-        0b00000101111010, // 6
-        0b00011001100110, // 7
-        0b00000010111101, // 8
-        0b00011101000010, // 9
+        0b00110000010111,
+        0b00010001111001,
+        0b00011000100101,
+        0b00111101110100,
+        0b00011110100001,
+        0b00000101111010,
+        0b00011001100110,
+        0b00000010111101,
+        0b00011101000010
 };
 
 int end[] =     { 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -133,8 +133,11 @@ inline void print_board() {
 inline void reset(int j) {
     int z = 0;
 
+    if (count[0] == 0)
+        ++z;
+
     used = 0 | (1 << (count[0] >> 2));
-    for (int i = 1; i <= j; i++) {
+    for (int i = 1; i <= j; ++i) {
         if (end[i] == 0 && ++z == 2)
             return;
 
@@ -182,7 +185,7 @@ inline int match(int i, int s) {
     switch (i) {
     case 1:
     case 2:
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 4; ++j) {
             if (j > 0) s += 4096;
 
             if (get_side(end[i-1], 1) == -get_side(s, 3))
@@ -191,7 +194,7 @@ inline int match(int i, int s) {
         return -1;
     case 3:
     case 6:
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 4; ++j) {
             if (j > 0) s += 4096;
 
             if (get_side(end[i - 3], 2) == -get_side(s, 0)) 
@@ -202,7 +205,7 @@ inline int match(int i, int s) {
     case 5:
     case 7:
     case 8:
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 4; ++j) {
             if (j > 0) s += 4096;
 
             if ((get_side(end[i-1], 1) == -get_side(s, 3)) &&
